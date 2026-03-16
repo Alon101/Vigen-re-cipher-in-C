@@ -61,7 +61,7 @@ for (int j = 0; j < i; j++) {
     printf("[%s]\n", keys[j]);
     }
 
-char text[] = "attack at dawn";
+char text[] = "i did some of the thing";
 char output[CONTENT_FILE];
 int text_length = strlen(text);
 int key_length = strlen(keys[0]);
@@ -71,6 +71,7 @@ for (int i = 0; i < text_length; i++) {
     output[i] = cipher(text[i], shift);
 }
 output[text_length] = '\0';
+printf("%s\n", text);
 printf("%s\n", output);
 
 
