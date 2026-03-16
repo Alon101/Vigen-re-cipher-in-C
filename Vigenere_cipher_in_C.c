@@ -3,8 +3,6 @@
 
 #define NUMBER_OF_SYMBOLS 29
 #define CONTENT_FILE 300
-#define MAX_KEYS 50
-#define MAX_KEY_LENGTH 50
 const char alphabet[NUMBER_OF_SYMBOLS] ={'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
      'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '@', '.', ' '};
 
@@ -30,53 +28,57 @@ char cipher(char c, int shift) {
 }
 
 int main() {
-FILE *fptr;
-fptr = fopen("keys.txt", "r");
 
-if(fptr == NULL) {
-    printf("Not able to open the file.");
-    return 1;
-}
-
-char Content_of_file[CONTENT_FILE];
-char *token;
-int i = 0;
-char keys[MAX_KEYS][MAX_KEY_LENGTH];
-
-while (fgets(Content_of_file, CONTENT_FILE, fptr) != NULL) {
-    Content_of_file[strcspn(Content_of_file, "\n")] = '\0';
-
-    token = strtok(Content_of_file, ",");
-    while(token != NULL) {
-        strcpy(keys[i], token);
-        i++;
-        token = strtok(NULL, ",");
-    }
-
-}
-
-fclose(fptr);
-
-for (int j = 0; j < i; j++) {
-    printf("[%s]\n", keys[j]);
-    }
-
-char text[] = "i did some of the thing";
+char cipher_ask[CONTENT_FILE];
+char key_ask[CONTENT_FILE];
 char output[CONTENT_FILE];
-int text_length = strlen(text);
-int key_length = strlen(keys[0]);
-for (int i = 0; i < text_length; i++) {
-    int key_pos = i % key_length;
-    int shift = keys[0][key_pos] - '0';
-    output[i] = cipher(text[i], shift);
+
+printf("Ready to Cipher:\n");
+if (fgets(cipher_ask, sizeof(cipher_ask),stdin) != NULL) {
+    /*check for buffer overflow*/
+    if (strchr(cipher_ask, '\n') == NULL) {
+    int ch;
+    while((ch =getchar()) != '\n' && ch != EOF) {}
+    }
+    if (cipher_ask[0] == '\n') {
+        printf("you must enter something!");
+        return 1;
 }
-output[text_length] = '\0';
-printf("%s\n", text);
-printf("%s\n", output);
+cipher_ask[strcspn(cipher_ask, "\n")] = '\0';
+
+printf("Please provide Key:\n");
+if (fgets(key_ask, sizeof(key_ask),stdin) != NULL) {
+    /*check for buffer overflow*/
+    if (strchr(key_ask, '\n') == NULL) {
+    int ch;
+    while((ch =getchar()) != '\n' && ch != EOF) {}
+        }
+    if (key_ask[0] == '\n') {
+        printf("you must enter something!");
+        return 1;
+        }
+    key_ask[strcspn(key_ask, "\n")] = '\0';
+
+        int key_length = strlen(key_ask);
+    for(int i = 0; i < key_length; i++) {
+        if (key_ask[i] < '0' || key_ask[i] > '9')
+        {
+            printf("You entered an invalid character. please enter numbers between 0-9.");
+            return 1;
+        }
+        
+    }
 
 
 
-
-
-
+    int text_length = strlen(cipher_ask);
+    for (int i = 0; i < text_length; i++) {
+        int key_pos = i % key_length;
+        int shift = key_ask[key_pos] - '0';
+        output[i] = cipher(cipher_ask[i], shift);
+    }
+    output[text_length] = '\0';
+    printf("%s\n", output);
+        }
+    }
 }
