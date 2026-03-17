@@ -4,6 +4,8 @@
 
 #define NUMBER_OF_SYMBOLS 29
 #define CONTENT_FILE 20000
+#define MAX_KEYS 50
+#define MAX_KEY_LENGTH 50
 const char alphabet[NUMBER_OF_SYMBOLS] ={'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
      'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '@', '.', ' '};
 
@@ -83,9 +85,9 @@ int file_read(char path[], char buffer[], int size){
     }
 
     buffer[0] = '\0';
-    temp_buffer[strcspn(temp_buffer, "\n")] = '\0';
     while (fgets(temp_buffer, sizeof(temp_buffer), pF) != NULL)
     {
+        temp_buffer[strcspn(temp_buffer, "\n")] = '\0';
         if (strlen(buffer) + strlen(temp_buffer) + 1 > size) {
             fclose(pF);
             printf("cant continue reading, buffer will overflow!!!\n");
@@ -97,14 +99,51 @@ int file_read(char path[], char buffer[], int size){
     return 1;
 }
 
+int key_read(char path[], char keys[][MAX_KEY_LENGTH], int max_keys) {
+FILE *fptr;
+fptr = fopen(path, "r");
+
+if(fptr == NULL) {
+    printf("Not able to open the file.");
+    return 0;
+}
+
+char Content_of_file[CONTENT_FILE];
+char *token;
+int i = 0;
+
+while (fgets(Content_of_file, CONTENT_FILE, fptr) != NULL) {
+    Content_of_file[strcspn(Content_of_file, "\n")] = '\0';
+
+    token = strtok(Content_of_file, ",");
+    while(token != NULL) {
+        if ( i >=max_keys) {
+            fclose(fptr);
+            return i;
+        }
+
+        strcpy(keys[i], token);
+        i++;
+        token = strtok(NULL, ",");
+    }
+
+}
+
+fclose(fptr);
+return i;
+}
+
+
+
 int main() {
 char file_path[CONTENT_FILE];
 char choice_prompt[10];
 char cipher_ask[CONTENT_FILE];
 char output[CONTENT_FILE];
+char keys[MAX_KEYS][MAX_KEY_LENGTH];
+char key_file_path[CONTENT_FILE];
 printf("Type: Cipher \\ Decipher\n");
 if (input_read(choice_prompt, sizeof(choice_prompt))) {
-char key_ask[CONTENT_FILE];
     /* this is the big one*/
     for ( int i = 0; i < strlen(choice_prompt); i++ ) {
         choice_prompt[i] = tolower(choice_prompt[i]);
@@ -115,49 +154,64 @@ char key_ask[CONTENT_FILE];
         if (!file_read(file_path, cipher_ask, sizeof(cipher_ask) )) {
             return 1;
         }
-        printf("Please provide Key:\n");
-        if (input_read(key_ask, sizeof(key_ask))) {
-            int key_length = strlen(key_ask);
-            if (!key_val(key_ask)) {
-                printf("You entered an Invalid character, please enter numbers between 0-9\n");
+        printf("Please provide path to Keys file:\n");
+        if (input_read(key_file_path, sizeof(key_file_path))) {
+            int key_count = key_read(key_file_path, keys, MAX_KEYS);
+            if (key_count == 0) {
                 return 1;
             }
-            int text_length = strlen(cipher_ask);
-            for (int i = 0; i < text_length; i++) {
-                int key_pos = i % key_length;
-                int shift = key_ask[key_pos] - '0';
-                output[i] = cipher(cipher_ask[i], shift);
-            }
-            output[text_length] = '\0';
-            printf("%s\n", output);
+            for ( int i = 0; i < key_count; i++) {
+                if (!key_val(keys[i])) {
+                    printf("key is not made of valid numbers...\n");
+                    return 1;
                 }
-            } 
-        } else if (strcmp(choice_prompt, "decipher") == 0) {
+                int key_length = strlen(keys[i]);
+                int text_length = strlen(cipher_ask);
+                for (int j = 0; j < text_length; j++) {
+                    int key_pos = j % key_length;
+                    int shift = keys[i][key_pos] - '0';
+                    output[j] = cipher(cipher_ask[j], shift);
+                }
+                output[text_length] = '\0';
+                printf("Key: %s\n", keys[i]);
+                printf("%s", output);
+
+            }
+        } 
+    }
+ } else if (strcmp(choice_prompt, "decipher") == 0) {  
                 printf("Ready to Decipher, Please provide file path:\n");
                 if (input_read(file_path, sizeof(file_path))) {
                     if (!file_read(file_path, cipher_ask, sizeof(cipher_ask))){
                         return 1;
                     }
-                printf("Please provide a Key:\n");
-                if (input_read(key_ask, sizeof(key_ask))) {
-                    int key_length = strlen(key_ask);
-                    if (!key_val(key_ask)){
-                        printf("You entered an Invalid character, please enter numbers between 0-9\n");
+                printf("Please provide a Path to a Key file:\n");
+                if (input_read(key_file_path, sizeof(key_file_path))) {
+                    int key_count = key_read(key_file_path, keys, MAX_KEYS);
+                    if (key_count == 0) {
                         return 1;
+                    } 
+                    for ( int i = 0; i < key_count; i++) {
+                        if (!key_val(keys[i])) {
+                        printf("key is not made of valid numbers...\n");
+                        return 1;
+                        }
+                    int key_length = strlen(keys[i]);
+                    int text_length = strlen(cipher_ask);
+                    for (int j = 0; j < text_length; j++) {
+                        int key_pos = j % key_length;
+                        int shift = keys[i][key_pos] - '0';
+                        output[j] = decipher(cipher_ask[j], shift);
+                        }
+                    output[text_length] = '\0';
+                    printf("Key: %s\n", keys[i]);
+                    printf("%s\n", output);
                     }
-                int text_length = strlen(cipher_ask);
-                for (int i = 0; i < text_length; i++) {
-                    int key_pos = i % key_length;
-                    int shift = key_ask[key_pos] - '0';
-                    output[i] = decipher(cipher_ask[i], shift);
-                    }
-                output[text_length] = '\0';
-                printf("%s\n", output);
-                }       
-            }
-            } else {
+        } else {
                 printf("input must be cipher or decipher.");
                 return 1;
+                }
+              }
             }
         }
 }
