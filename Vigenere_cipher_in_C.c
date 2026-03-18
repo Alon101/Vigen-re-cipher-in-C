@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 #define NUMBER_OF_SYMBOLS 29
 #define CONTENT_FILE 20000
@@ -133,6 +134,21 @@ fclose(fptr);
 return i;
 }
 
+int create_file_results(char path[], char original_text[], char key[], char result_output[]) {
+    FILE *pF = fopen(path, "w");
+
+    if (pF == NULL) {
+        printf("Unable to create the file.\n");
+        return 0;
+    }
+
+    fprintf(pF, "original:\n%s\n\n", original_text);
+    fprintf(pF, "Key:\n%s\n\n", key);
+    fprintf(pF, "Coded//Decoded:\n%s\n", result_output);
+
+    fclose(pF);
+    return 1;
+}
 
 
 int main() {
@@ -141,7 +157,10 @@ char choice_prompt[10];
 char cipher_ask[CONTENT_FILE];
 char output[CONTENT_FILE];
 char keys[MAX_KEYS][MAX_KEY_LENGTH];
+char results_buffer[MAX_KEYS][CONTENT_FILE];
 char key_file_path[CONTENT_FILE];
+char output_save_choice[32];
+int key_count = 0;
 printf("Type: Cipher \\ Decipher\n");
 if (input_read(choice_prompt, sizeof(choice_prompt))) {
     /* this is the big one*/
@@ -173,11 +192,37 @@ if (input_read(choice_prompt, sizeof(choice_prompt))) {
                     output[j] = cipher(cipher_ask[j], shift);
                 }
                 output[text_length] = '\0';
+                strcpy(results_buffer[i], output);
+                printf("\nResult %d\n", i + 1);
                 printf("Key: %s\n", keys[i]);
-                printf("%s", output);
-
+                printf("%s\n", results_buffer[i]);
             }
-        } 
+        }
+        printf("\nWhich output do you want to save?\n");
+        if (input_read(output_save_choice, sizeof(output_save_choice))) {
+            int chosen_number = atoi(output_save_choice);
+            key_count = key_read(key_file_path, keys, MAX_KEYS);
+            if ( chosen_number < 1 || chosen_number > key_count) {
+                printf("Input is not in results range\n");
+                return 1;
+            }
+
+            int true_index = chosen_number -1;
+            char save_path[CONTENT_FILE];
+            printf("Please enter output file path, or just the name of the file, to create it in the same folder the program is in\n");
+            if (!input_read(save_path, sizeof(save_path))) {
+                printf("Path not valid.\n");
+                return 1;
+            }
+            printf("Chosen key: %s\n", keys[true_index]);
+            printf("Chosen output:\n%s\n", results_buffer[true_index]);
+            if (!create_file_results(save_path, cipher_ask, keys[true_index], results_buffer[true_index])) {
+                printf("creating file failed.\n");
+                return 1;
+            }
+            printf("Result was saved successfully.\n");
+        }
+
     }
  } else if (strcmp(choice_prompt, "decipher") == 0) {  
                 printf("Ready to Decipher, Please provide file path:\n");
@@ -204,9 +249,36 @@ if (input_read(choice_prompt, sizeof(choice_prompt))) {
                         output[j] = decipher(cipher_ask[j], shift);
                         }
                     output[text_length] = '\0';
+                    strcpy(results_buffer[i], output);
+                    printf("\nResult %d\n", i + 1);
                     printf("Key: %s\n", keys[i]);
-                    printf("%s\n", output);
+                    printf("%s\n", results_buffer[i]);
                     }
+                printf("\nWhich output do you want to save?\n");
+                if (input_read(output_save_choice, sizeof(output_save_choice))) {
+                    int chosen_number = atoi(output_save_choice);
+                    key_count = key_read(key_file_path, keys, MAX_KEYS);
+                    if ( chosen_number < 1 || chosen_number > key_count) {
+                        printf("Input is not in results range\n");
+                        return 1;
+                    }
+
+                    int true_index = chosen_number -1;
+                    char save_path[CONTENT_FILE];
+                    printf("Please enter output file path, or just the name of the file, to create it in the same folder the program is in\n");
+                    if (!input_read(save_path, sizeof(save_path))) {
+                        printf("Path not valid.\n");
+                        return 1;
+                    }
+                    printf("Chosen key: %s\n", keys[true_index]);
+                    printf("Chosen output:\n%s\n", results_buffer[true_index]);
+                    if (!create_file_results(save_path, cipher_ask, keys[true_index], results_buffer[true_index])) {
+                        printf("creating file failed.\n");
+                        return 1;
+                    }
+                    printf("Result was saved successfully.\n");
+                }
+
         } else {
                 printf("input must be cipher or decipher.");
                 return 1;
