@@ -235,25 +235,25 @@ if (input_read(choice_prompt, sizeof(choice_prompt))) {
                     int key_count = key_read(key_file_path, keys, MAX_KEYS);
                     if (key_count == 0) {
                         return 1;
-                    } 
+                        } 
                     for ( int i = 0; i < key_count; i++) {
                         if (!key_val(keys[i])) {
                         printf("key is not made of valid numbers...\n");
                         return 1;
                         }
-                    int key_length = strlen(keys[i]);
-                    int text_length = strlen(cipher_ask);
-                    for (int j = 0; j < text_length; j++) {
-                        int key_pos = j % key_length;
-                        int shift = keys[i][key_pos] - '0';
-                        output[j] = decipher(cipher_ask[j], shift);
+                        int key_length = strlen(keys[i]);
+                        int text_length = strlen(cipher_ask);
+                        for (int j = 0; j < text_length; j++) {
+                            int key_pos = j % key_length;
+                            int shift = keys[i][key_pos] - '0';
+                            output[j] = decipher(cipher_ask[j], shift);
+                            }
+                        output[text_length] = '\0';
+                        strcpy(results_buffer[i], output);
+                        printf("\nResult %d\n", i + 1);
+                        printf("Key: %s\n", keys[i]);
+                        printf("%s\n", results_buffer[i]);
                         }
-                    output[text_length] = '\0';
-                    strcpy(results_buffer[i], output);
-                    printf("\nResult %d\n", i + 1);
-                    printf("Key: %s\n", keys[i]);
-                    printf("%s\n", results_buffer[i]);
-                    }
                 printf("\nWhich output do you want to save?\n");
                 if (input_read(output_save_choice, sizeof(output_save_choice))) {
                     int chosen_number = atoi(output_save_choice);
@@ -278,12 +278,12 @@ if (input_read(choice_prompt, sizeof(choice_prompt))) {
                     }
                     printf("Result was saved successfully.\n");
                 }
-
+            } 
         } else {
                 printf("input must be cipher or decipher.");
                 return 1;
                 }
-              }
+              
             }
         }
 }
